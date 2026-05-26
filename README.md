@@ -5,7 +5,6 @@ A production-oriented ATS (Applicant Tracking System) resume scoring notebook th
 
 
 
-```markdown
 # 🎯 Hybrid ATS Resume Analyzer
 
 A production-oriented ATS (Applicant Tracking System) resume scoring notebook that goes beyond simple keyword matching. It combines TF-IDF, semantic similarity, section-aware weighting, and manipulation detection to give a fair, explainable match score between a resume and a dataset of job descriptions.
@@ -28,7 +27,7 @@ Upload a resume (PDF or DOCX), point it at a job skills dataset, and get back:
 
 ## ⚙️ Scoring Formula
 
-```
+```text
 Final Score = (0.4 × TF-IDF Score + 0.6 × Semantic Score) × 100 − Manipulation Penalty
 ```
 
@@ -62,27 +61,57 @@ The notebook is structured across 15 steps, each cell building on the last.
 
 ## 🔑 Key Components
 
-**Resume Section Parser**
-Splits resumes into Skills, Experience, Projects, and Education sections. Each section is weighted differently when computing the score: Experience (40%), Skills (30%), Projects (20%), Education (10%).
+### Resume Section Parser
+Splits resumes into Skills, Experience, Projects, and Education sections. Each section is weighted differently when computing the score:
 
-**Abbreviation Expander**
-Maps 25+ common technical abbreviations to their full forms before scoring, so "NLP", "ML", "AWS", "CI/CD", and similar shorthands are correctly matched against job descriptions.
+- Experience → 40%
+- Skills → 30%
+- Projects → 20%
+- Education → 10%
 
-**Manipulation Detector**
+### Abbreviation Expander
+Maps 25+ common technical abbreviations to their full forms before scoring, so terms like:
+
+- NLP
+- ML
+- AWS
+- CI/CD
+
+are correctly matched against job descriptions.
+
+### Manipulation Detector
 Counts word frequency and density. If any meaningful word appears too many times relative to total content, a flag is raised and a penalty of up to 20 points is deducted from the final score.
 
-**TF-IDF Scorer**
-Uses `sublinear_tf=True` to dampen repeated keyword impact, and `ngram_range=(1,2)` to capture two-word phrases like "machine learning" and "data science" as single units.
+### TF-IDF Scorer
+Uses:
 
-**Semantic Scorer**
-Uses the `all-MiniLM-L6-v2` sentence-transformer model to compute embedding-based similarity. This allows the system to match related concepts even when exact keywords differ — for example, "neural systems" and "machine learning".
+```python
+sublinear_tf=True
+ngram_range=(1,2)
+```
+
+This reduces repeated keyword impact while capturing phrases like:
+
+- machine learning
+- data science
+
+as single units.
+
+### Semantic Scorer
+Uses the `all-MiniLM-L6-v2` sentence-transformer model to compute embedding-based similarity.
+
+This allows the system to match related concepts even when exact keywords differ — for example:
+
+- "neural systems"
+- "machine learning"
 
 ---
 
 ## 📋 Requirements
 
-**Libraries installed in Step 1:**
-```
+### Libraries Installed in Step 1
+
+```text
 sentence-transformers
 python-docx
 PyMuPDF
@@ -91,8 +120,15 @@ pandas
 numpy
 ```
 
-**Dataset required:**
-A CSV file named `resume_analyzer_skills_dataset.csv` with at least the following columns:
+### Dataset Required
+
+A CSV file named:
+
+```text
+resume_analyzer_skills_dataset.csv
+```
+
+with at least the following columns:
 
 | Column | Description |
 |--------|-------------|
@@ -103,7 +139,10 @@ A CSV file named `resume_analyzer_skills_dataset.csv` with at least the followin
 | `Skills_Required` | Comma-separated list of required skills |
 | `Skill_Count` | Number of skills listed |
 
-**Supported resume formats:** PDF, DOCX
+### Supported Resume Formats
+
+- PDF
+- DOCX
 
 ---
 
@@ -111,12 +150,15 @@ A CSV file named `resume_analyzer_skills_dataset.csv` with at least the followin
 
 This notebook is designed to run on **Google Colab**.
 
+### Step-by-Step
+
 1. Open the notebook in Google Colab.
-2. Run **Step 1** to install dependencies (once per session).
-3. Run **Steps 2–4** to set up libraries and load the job dataset.
-4. Run **Steps 5–13** to define all processing and scoring functions.
-5. Run **Step 14** — you will be prompted to upload your resume. The full analysis runs automatically and renders an HTML report.
-6. Optionally run **Step 15** to download the results as a JSON file.
+2. Run **Step 1** to install dependencies.
+3. Run **Steps 2–4** to load libraries and dataset.
+4. Run **Steps 5–13** to define all processing functions.
+5. Run **Step 14** and upload your resume.
+6. View the generated ATS analysis report.
+7. Optionally run **Step 15** to export results as JSON.
 
 > ⚠️ Steps 1–13 only define functions. No scoring happens until Step 14.
 
@@ -124,35 +166,50 @@ This notebook is designed to run on **Google Colab**.
 
 ## 📤 Output
 
-**HTML report (rendered inline) includes:**
-- Overall ATS score with score band (Excellent / Good / Fair / Low)
+### HTML Report Includes
+
+- Overall ATS score with score band
 - Detected resume sections
-- Keyword stuffing status and penalty breakdown
-- Top 10 matching jobs with individual TF-IDF, semantic, and skill match scores
-- Score comparison table
-- Prioritised recommendations (High / Medium / Low severity)
+- Keyword stuffing status
+- Manipulation penalty breakdown
+- Top 10 matching jobs
+- TF-IDF + semantic score comparison
+- Skill match statistics
+- Prioritised recommendations
 
-**Plain text summary (printed to console) includes:**
+### Console Summary Includes
+
 - Overall ATS score
-- Best matching role details
-- Top 5 jobs ranked by score
-- Top 5 recommendations
+- Best matching role
+- Top 5 ranked jobs
+- Top recommendations
 
-**Optional JSON export (`ats_analysis_result.json`) includes:**
+### Optional JSON Export
+
+`ats_analysis_result.json` contains:
+
 - Best match details
-- Full top 10 job rankings with all sub-scores
-- Manipulation check results
+- Top 10 ranked jobs
+- All sub-scores
+- Manipulation results
 - Detected sections
-- All recommendations
+- Recommendations
 
 ---
 
 ## ⚠️ Known Limitations
 
-- **Image-based PDFs** — if the PDF contains scanned images rather than selectable text, extraction will return very few words. Convert to a text-based PDF or DOCX before uploading.
-- **Non-standard resume formats** — the section parser uses regex-based header detection. Heavily designed or table-formatted resumes may not parse cleanly into sections.
-- **Dataset dependency** — scoring quality depends on how comprehensive and well-structured the job skills CSV is.
-- **Colab session resets** — the sentence-transformer model (Step 9) needs to reload each new session. It downloads automatically on first run.
+### Image-Based PDFs
+Scanned PDFs without selectable text may extract poorly.
+
+### Non-Standard Resume Formats
+Highly designed resumes or table-heavy layouts may not parse cleanly.
+
+### Dataset Dependency
+Scoring quality depends heavily on the completeness of the job skills dataset.
+
+### Colab Session Reset
+The sentence-transformer model reloads every new session.
 
 ---
 
@@ -161,14 +218,41 @@ This notebook is designed to run on **Google Colab**.
 | File | Description |
 |------|-------------|
 | `Hybrid_ATS_Resume_Analyzer.ipynb` | Main notebook |
-| `resume_analyzer_skills_dataset.csv` | Job skills dataset (user-supplied) |
-| `ats_analysis_result.json` | Analysis output (generated at runtime, optional) |
+| `resume_analyzer_skills_dataset.csv` | Job skills dataset |
+| `ats_analysis_result.json` | Optional generated output |
 
 ---
 
 ## 📚 Background
 
-This system was built as a redesign of a basic TF-IDF-only ATS prototype. The original system suffered from semantic mismatch, keyword stuffing vulnerability, long-resume bias, and no explainability. The hybrid approach addresses all of these while remaining lightweight, locally runnable, and free of paid API dependencies.
+This project was built as a redesign of a basic TF-IDF-only ATS prototype.
 
-For the full design rationale, failure analysis, and architecture decisions, see the accompanying assignment document.
-```
+The original system suffered from:
+
+- Semantic mismatch
+- Keyword stuffing vulnerability
+- Long-resume bias
+- Lack of explainability
+
+The hybrid approach addresses these issues while remaining:
+
+- Lightweight
+- Locally runnable
+- Free from paid API dependencies
+
+For full design rationale, architecture decisions, and failure analysis, refer to the accompanying assignment documentation.
+
+---
+
+## ⭐ Features at a Glance
+
+✅ TF-IDF + Semantic Hybrid Scoring  
+✅ Resume Section Weighting  
+✅ Skill Match Analysis  
+✅ Keyword Stuffing Detection  
+✅ Explainable Recommendations  
+✅ HTML Report Generation  
+✅ JSON Export Support  
+✅ Google Colab Compatible  
+✅ PDF + DOCX Support  
+✅ No Paid APIs Required
